@@ -205,7 +205,7 @@ def main():
         return
     subprocess.run(["git", "push"], check=True)
     print(f"\n🚀 pushed. Vercel will auto-deploy in ~30s.")
-    print(f"   share link will be: https://html-library-lucas.vercel.app/artifacts/{slug}.html")
+    print(f"   share link will be: https://html-library-sooty.vercel.app/artifacts/{slug}.html")
 
 
 if __name__ == "__main__":

@@ -31,8 +31,8 @@ add ~/Downloads/some.html --no-push
 ## 部署
 
 - Push 到 GitHub → Vercel 自动部署
-- 公开访问: `https://html-library-lucas.vercel.app`
-- 单篇分享: `https://html-library-lucas.vercel.app/artifacts/<slug>.html`
+- 公开访问: `https://html-library-sooty.vercel.app`
+- 单篇分享: `https://html-library-sooty.vercel.app/artifacts/<slug>.html`
 
 ## 别名 (推荐)
 
