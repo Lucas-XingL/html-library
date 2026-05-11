@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Skills 设计指南 · 可视化精读</title>
+<style>
+  :root{
+    --bg:#fafaf7;
+    --surface:#ffffff;
+    --ink:#1a1a1a;
+    --ink-soft:#5b5b5b;
+    --ink-dim:#9a9a9a;
+    --accent:#0b6cff;
+    --accent-soft:#e0ecff;
+    --warm:#ff7a3d;
+    --warm-soft:#ffe7dc;
+    --green:#0e9f6e;
+    --green-soft:#d6f1e7;
+    --red:#dc2626;
+    --red-soft:#fde2e2;
+    --line:#e6e3dc;
+    --code-bg:#f5f2ed;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Segoe UI",sans-serif;
+    --mono:"JetBrains Mono","SF Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--sans);
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+
+  /* ===== header ===== */
+  .hero{
+    background:linear-gradient(135deg,#0b6cff 0%,#7a4dff 100%);
+    color:#fff;
+    border-radius:16px;
+    padding:36px 40px;
+    margin-bottom:28px;
+  }
+  .hero .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.85}
+  .hero h1{margin:8px 0 14px;font-size:30px;line-height:1.25;font-weight:700;letter-spacing:-.01em}
+  .hero p{margin:0;font-size:15px;opacity:.92;max-width:760px}
+  .hero .src{margin-top:14px;font-size:12px;opacity:.7}
+  .hero .src a{color:#fff;text-decoration:underline;text-underline-offset:2px}
+
+  /* ===== section title ===== */
+  h2.sec{
+    margin:48px 0 16px;
+    font-size:22px;
+    letter-spacing:-.005em;
+    display:flex;align-items:center;gap:10px;
+  }
+  h2.sec .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:28px;height:28px;
+    background:var(--ink);color:#fff;
+    border-radius:6px;
+    font-family:var(--mono);font-size:13px;font-weight:600;
+  }
+  .sec-lede{color:var(--ink-soft);font-size:14px;margin:-8px 0 16px 0;padding-left:38px}
+
+  /* ===== TL;DR cards ===== */
+  .tldr{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px}
+  .tldr .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px;
+    position:relative;
+  }
+  .tldr .card .tag{
+    display:inline-block;font-size:11px;font-weight:600;
+    padding:2px 8px;border-radius:4px;
+    background:var(--accent-soft);color:var(--accent);
+    letter-spacing:.04em;text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .tldr .card .tag.warm{background:var(--warm-soft);color:var(--warm)}
+  .tldr .card .tag.green{background:var(--green-soft);color:var(--green)}
+  .tldr .card .tag.red{background:var(--red-soft);color:var(--red)}
+  .tldr .card h3{margin:0 0 6px;font-size:16px;font-weight:600}
+  .tldr .card p{margin:0;font-size:13.5px;color:var(--ink-soft);line-height:1.55}
+
+  /* ===== table ===== */
+  table.zen{
+    width:100%;border-collapse:separate;border-spacing:0;
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    overflow:hidden;
+  }
+  table.zen th,table.zen td{
+    padding:14px 18px;text-align:left;vertical-align:top;font-size:14px;
+    border-bottom:1px solid var(--line);
+  }
+  table.zen tr:last-child td{border-bottom:none}
+  table.zen th{
+    background:#f5f2ed;font-weight:600;font-size:12px;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);
+  }
+  table.zen td.before{color:var(--ink-dim);width:38%}
+  table.zen td.after{color:var(--ink);font-weight:500}
+  table.zen td.after b{color:var(--accent);font-weight:600}
+  .arrow-col{width:28px;text-align:center !important;color:var(--ink-dim)}
+
+  /* ===== hub spoke svg block ===== */
+  .hub-block{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:24px;
+    display:grid;grid-template-columns:1.1fr 1fr;gap:24px;align-items:center;
+  }
+  .hub-block .legend h4{margin:0 0 8px;font-size:15px}
+  .hub-block .legend ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-soft)}
+  .hub-block .legend li{margin:4px 0}
+  .hub-block .legend code{
+    background:var(--code-bg);padding:1px 6px;border-radius:4px;
+    font-family:var(--mono);font-size:12px;color:var(--accent);
+  }
+
+  /* ===== tier pyramid ===== */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px}
+  .tier{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .tier .bar{
+    position:absolute;top:0;left:0;right:0;height:4px;
+  }
+  .tier.t1 .bar{background:var(--red)}
+  .tier.t2 .bar{background:var(--warm)}
+  .tier.t3 .bar{background:var(--green)}
+  .tier .name{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-top:6px}
+  .tier h3{margin:6px 0 2px;font-size:18px}
+  .tier .budget{font-family:var(--mono);font-size:20px;font-weight:700;margin:6px 0 4px}
+  .tier.t1 .budget{color:var(--red)}
+  .tier.t2 .budget{color:var(--warm)}
+  .tier.t3 .budget{color:var(--green)}
+  .tier .label{font-size:12px;color:var(--ink-dim);font-family:var(--mono)}
+  .tier ul{padding-left:18px;margin:10px 0 0;font-size:13px;color:var(--ink-soft)}
+  .tier li{margin:3px 0}
+  .tier .when{margin-top:10px;font-size:12.5px;color:var(--ink);background:#f5f2ed;padding:6px 10px;border-radius:6px}
+
+  /* ===== need/no-need split ===== */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .split .pane{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:12px;padding:18px 20px;
+  }
+  .split .yes{border-top:3px solid var(--green)}
+  .split .no{border-top:3px solid var(--red)}
+  .split h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .split h3 .ico{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:50%;color:#fff;font-weight:700;font-size:13px;
+  }
+  .yes h3 .ico{background:var(--green)}
+  .no h3 .ico{background:var(--red)}
+  .split ul{margin:0;padding-left:0;list-style:none}
+  .split li{
+    font-size:13.5px;color:var(--ink-soft);
+    padding:8px 0;border-bottom:1px dashed var(--line);
+    display:flex;gap:8px;align-items:flex-start;
+  }
+  .split li:last-child{border-bottom:none}
+  .split li b{color:var(--ink);font-weight:600}
+  .split li .dot{
+    flex-shrink:0;margin-top:6px;width:6px;height:6px;border-radius:50%;
+  }
+  .yes li .dot{background:var(--green)}
+  .no li .dot{background:var(--red)}
+
+  /* ===== steps timeline ===== */
+  .steps{display:flex;gap:0;overflow-x:auto;padding-bottom:8px}
+  .step{
+    flex:1 0 0;min-width:160px;
+    background:var(--surface);border:1px solid var(--line);
+    padding:16px;position:relative;
+  }
+  .step:first-child{border-radius:12px 0 0 12px}
+  .step:last-child{border-radius:0 12px 12px 0}
+  .step + .step{border-left:none}
+  .step .stepno{
+    font-family:var(--mono);font-size:11px;font-weight:600;
+    color:var(--accent);letter-spacing:.1em;
+  }
+  .step h3{margin:4px 0 6px;font-size:15px}
+  .step p{margin:0;font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+  .step.highlight{background:#fff8f3;border-color:#ffd6bd}
+  .step.highlight .stepno{color:var(--warm)}
+
+  /* ===== gotchas flywheel ===== */
+  .flywheel{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .flywheel .row{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:12px;padding:14px 18px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .flywheel .trigger{
+    flex:1;font-size:13.5px;color:var(--ink-soft);
+  }
+  .flywheel .trigger b{color:var(--ink)}
+  .flywheel .arrow{
+    color:var(--accent);font-size:18px;flex-shrink:0;
+  }
+  .flywheel .action{
+    flex:1;font-size:13.5px;color:var(--ink);font-weight:500;
+    background:var(--accent-soft);color:var(--accent);
+    padding:6px 10px;border-radius:6px;
+  }
+
+  /* ===== description do/don't ===== */
+  .desc-compare{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:12px;padding:0;overflow:hidden;
+  }
+  .desc-compare .row{display:grid;grid-template-columns:80px 1fr;border-bottom:1px solid var(--line)}
+  .desc-compare .row:last-child{border-bottom:none}
+  .desc-compare .label{
+    background:#f5f2ed;padding:14px;
+    font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-soft);font-weight:600;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .desc-compare .row.bad .label{background:var(--red-soft);color:var(--red)}
+  .desc-compare .row.good .label{background:var(--green-soft);color:var(--green)}
+  .desc-compare .body{padding:14px 18px;font-size:13.5px}
+  .desc-compare .body code{
+    font-family:var(--mono);font-size:12px;color:var(--ink);
+    background:var(--code-bg);padding:2px 6px;border-radius:4px;
+  }
+  .desc-compare .row.bad .body{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:rgba(220,38,38,.4)}
+
+  /* ===== takeaways ===== */
+  .takeaways{
+    background:linear-gradient(135deg,#1a1a1a 0%,#3a3a3a 100%);
+    color:#fff;border-radius:12px;padding:24px 28px;
+  }
+  .takeaways h3{margin:0 0 16px;font-size:16px;letter-spacing:.04em;color:#fff}
+  .takeaways ol{margin:0;padding-left:24px}
+  .takeaways li{margin:12px 0;font-size:14px;line-height:1.55}
+  .takeaways li b{color:#fff;background:rgba(255,255,255,.13);padding:1px 6px;border-radius:4px}
+
+  /* ===== footnotes / source ===== */
+  footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-dim);text-align:center}
+  footer a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--line)}
+
+  @media (max-width:860px){
+    .tldr,.tiers{grid-template-columns:1fr 1fr}
+    .hub-block{grid-template-columns:1fr}
+    .split,.flywheel{grid-template-columns:1fr}
+    .hero{padding:24px}
+    .hero h1{font-size:22px}
+  }
+  @media (max-width:560px){
+    .tldr,.tiers{grid-template-columns:1fr}
+    table.zen td.before,table.zen td.after{font-size:13px;padding:10px 12px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <div class="hero">
+    <div class="eyebrow">Perplexity Agents Team · 可视化精读</div>
+    <h1>写 Agent Skill ≠ 写代码<br>它是给模型构建的 context, 不是给人读的文档</h1>
+    <p>Skill 是路由触发器 + 渐进式知识包 + 不断累积的 gotchas 列表。它的最高准则只有一条:<b style="color:#ffd76b">每一个 token 都要赚回它的注意力成本。</b></p>
+    <div class="src">原文: <a href="https://www.perplexity.ai/" target="_blank">Designing, Refining, and Maintaining Agent Skills at Perplexity</a> · 2026.05</div>
+  </div>
+
+  <!-- ============ 1. 七个核心结论 ============ -->
+  <h2 class="sec"><span class="num">1</span>七个先读结论</h2>
+  <div class="sec-lede">如果你只有 30 秒,只看下面 7 张卡片。</div>
+  <div class="tldr">
+    <div class="card">
+      <span class="tag">CONCLUSION 1</span>
+      <h3>Skill 是文件夹,不是文件</h3>
+      <p>SKILL.md 是 hub,scripts / references / assets 是 spoke。复杂性本身是 Skill 的特性,不要硬塞进一个 markdown。</p>
+    </div>
+    <div class="card">
+      <span class="tag warm">CONCLUSION 2</span>
+      <h3>description 比正文更难写</h3>
+      <p>description 是路由触发器,不是说明文档。以 <code>Load when…</code> 开头,&lt; 50 词,描述用户意图,不要总结工作流。</p>
+    </div>
+    <div class="card">
+      <span class="tag warm">CONCLUSION 3</span>
+      <h3>每个 Skill 都是一笔税</h3>
+      <p>每个 session、每个用户都在为它的 100 tokens 索引付费。问自己:&ldquo;没这句指令,agent 会做错吗?&rdquo;答案是否,就删。</p>
+    </div>
+    <div class="card">
+      <span class="tag green">CONCLUSION 4</span>
+      <h3>Context 分三层,门槛递减</h3>
+      <p>Index ≤ 100 tokens · Body ≤ 5,000 tokens · Runtime 无上限。越早期的层,门槛越严。</p>
+    </div>
+    <div class="card">
+      <span class="tag green">CONCLUSION 5</span>
+      <h3>Gotchas 是最高价值内容</h3>
+      <p>负面示例 &gt; 正面示例。先薄起步,跌一次坑加一条,自然长出来。维护期主要做"追加",不要不断改 description。</p>
+    </div>
+    <div class="card">
+      <span class="tag red">CONCLUSION 6</span>
+      <h3>容易解释的内容 → 删掉</h3>
+      <p>模型已经知道。git 命令串、README、system prompt 复述 — 全都不需要 Skill。Skill 只装"模型不知道的判断"。</p>
+    </div>
+    <div class="card" style="grid-column:span 3">
+      <span class="tag">CONCLUSION 7</span>
+      <h3>新增 Skill 会无形中伤害所有 Skill (action at a distance)</h3>
+      <p>因为路由是隐式模式匹配,任何 description 的细微改动都会外溢到其他 Skill 上。所以:<b>先写 evals,再写 Skill。改 description 必须配套写 eval。</b></p>
+    </div>
+  </div>
+
+  <!-- ============ 2. Zen of Python vs Zen of Skills ============ -->
+  <h2 class="sec"><span class="num">2</span>为什么"写代码的直觉"在 Skill 上行不通</h2>
+  <div class="sec-lede">PEP20 的 20 条箴言里, 至少一半在 Skill 上是错的。下面 5 条对比最直观:</div>
+  <table class="zen">
+    <thead>
+      <tr><th>Zen of Python</th><th class="arrow-col"></th><th>Zen of Skills</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="before">Simple is better than complex<br><span style="color:#9a9a9a;font-size:12px">简单胜于复杂</span></td>
+        <td class="arrow-col">→</td>
+        <td class="after">Skill 是一个文件夹,<b>复杂性就是特性</b></td>
+      </tr>
+      <tr>
+        <td class="before">Explicit is better than implicit<br><span style="color:#9a9a9a;font-size:12px">显式优于隐式</span></td>
+        <td class="arrow-col">→</td>
+        <td class="after">激活靠<b>隐式模式匹配</b>;内容按需<b>渐进展开</b></td>
+      </tr>
+      <tr>
+        <td class="before">Sparse is better than dense<br><span style="color:#9a9a9a;font-size:12px">稀疏优于密集</span></td>
+        <td class="arrow-col">→</td>
+        <td class="after">context 很昂贵, 追求<b>每个 token 最大信号量</b></td>
+      </tr>
+      <tr>
+        <td class="before">Special cases aren't special enough to break the rules<br><span style="color:#9a9a9a;font-size:12px">特例不足以打破规则</span></td>
+        <td class="arrow-col">→</td>
+        <td class="after"><b>Gotchas 就是特例</b>, 也是价值最高的部分</td>
+      </tr>
+      <tr>
+        <td class="before">If easy to explain, may be a good idea<br><span style="color:#9a9a9a;font-size:12px">容易解释就是好主意</span></td>
+        <td class="arrow-col">→</td>
+        <td class="after">容易解释 = <b>模型已经知道, 删掉</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ============ 3. Hub & Spoke 结构 ============ -->
+  <h2 class="sec"><span class="num">3</span>Skill 的目录结构: Hub &amp; Spoke</h2>
+  <div class="sec-lede">SKILL.md 是中心枢纽, 其他文件按需被 hub 路由调用。这种"中心+辐射"模式让 Skill 保持紧凑, 又能承载复杂度。</div>
+  <div class="hub-block">
+    <svg viewBox="0 0 420 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:420px;margin:0 auto;display:block">
+      <!-- spokes (lines) -->
+      <line x1="210" y1="160" x2="80"  y2="60"  stroke="#cdd5e0" stroke-width="1.5" stroke-dasharray="3 4"/>
+      <line x1="210" y1="160" x2="340" y2="60"  stroke="#cdd5e0" stroke-width="1.5" stroke-dasharray="3 4"/>
+      <line x1="210" y1="160" x2="40"  y2="200" stroke="#cdd5e0" stroke-width="1.5" stroke-dasharray="3 4"/>
+      <line x1="210" y1="160" x2="380" y2="200" stroke="#cdd5e0" stroke-width="1.5" stroke-dasharray="3 4"/>
+      <line x1="210" y1="160" x2="210" y2="290" stroke="#cdd5e0" stroke-width="1.5" stroke-dasharray="3 4"/>
+
+      <!-- spoke nodes -->
+      <g font-family="-apple-system,sans-serif" font-size="11" text-anchor="middle">
+        <!-- scripts/ -->
+        <rect x="30" y="38" width="110" height="44" rx="8" fill="#e0ecff" stroke="#0b6cff" stroke-width="1.2"/>
+        <text x="85" y="56" font-weight="600" fill="#0b6cff">scripts/</text>
+        <text x="85" y="72" fill="#5b5b5b" font-size="10">确定性代码</text>
+
+        <!-- references/ -->
+        <rect x="290" y="38" width="110" height="44" rx="8" fill="#ffe7dc" stroke="#ff7a3d" stroke-width="1.2"/>
+        <text x="345" y="56" font-weight="600" fill="#ff7a3d">references/</text>
+        <text x="345" y="72" fill="#5b5b5b" font-size="10">条件加载文档</text>
+
+        <!-- assets/ -->
+        <rect x="-5" y="178" width="90" height="44" rx="8" fill="#d6f1e7" stroke="#0e9f6e" stroke-width="1.2"/>
+        <text x="40" y="196" font-weight="600" fill="#0e9f6e">assets/</text>
+        <text x="40" y="212" fill="#5b5b5b" font-size="10">模板/schema</text>
+
+        <!-- config.json -->
+        <rect x="335" y="178" width="90" height="44" rx="8" fill="#f3e7ff" stroke="#7a4dff" stroke-width="1.2"/>
+        <text x="380" y="196" font-weight="600" fill="#7a4dff">config.json</text>
+        <text x="380" y="212" fill="#5b5b5b" font-size="10">首次配置</text>
+
+        <!-- subskills -->
+        <rect x="155" y="276" width="110" height="40" rx="8" fill="#f5f2ed" stroke="#9a9a9a" stroke-width="1.2"/>
+        <text x="210" y="294" font-weight="600" fill="#5b5b5b">subskills</text>
+        <text x="210" y="308" fill="#9a9a9a" font-size="10">嵌套 Skill</text>
+      </g>
+
+      <!-- hub -->
+      <circle cx="210" cy="160" r="46" fill="#1a1a1a"/>
+      <text x="210" y="158" font-family="-apple-system,sans-serif" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">SKILL.md</text>
+      <text x="210" y="175" font-family="-apple-system,sans-serif" font-size="10" fill="#9a9a9a" text-anchor="middle">name · description</text>
+      <text x="210" y="188" font-family="-apple-system,sans-serif" font-size="10" fill="#9a9a9a" text-anchor="middle">+ 正文 (≤5k tokens)</text>
+    </svg>
+
+    <div class="legend">
+      <h4>每个 spoke 的职责</h4>
+      <ul>
+        <li><code>SKILL.md</code> 唯一必需文件, 含 frontmatter + 正文</li>
+        <li><code>scripts/</code> 让 agent 直接跑, 不要每次重新发明</li>
+        <li><code>references/</code> 体量大的资料, 只在条件触发时读</li>
+        <li><code>assets/</code> 输出模板、JSON schema、固定数据</li>
+        <li><code>config.json</code> 首次运行时的用户问询</li>
+        <li>多层级嵌套适合复杂领域 (例如 1,945 条税法条款 → 20 大类 → 子主题)</li>
+      </ul>
+      <h4 style="margin-top:14px">为什么不用单文件?</h4>
+      <ul>
+        <li>把所有内容塞 SKILL.md → 模型很难导航</li>
+        <li>分层后模型可以"先选大类, 再选子项",分类难度指数下降</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ 4. 三层 Context 预算 ============ -->
+  <h2 class="sec"><span class="num">4</span>Context 三层预算: 越早期, 门槛越严</h2>
+  <div class="sec-lede">从左到右,准入门槛递减; 但从右到左, 影响范围递增。</div>
+  <div class="tiers">
+    <div class="tier t1">
+      <div class="bar"></div>
+      <div class="name">Tier 1 · 索引层</div>
+      <h3>Index</h3>
+      <div class="budget">~ 100 <span class="label">tokens / Skill</span></div>
+      <ul>
+        <li><b>加载内容:</b> 每个非隐藏 Skill 的 name + description</li>
+        <li><b>注入位置:</b> system prompt 开头</li>
+        <li><b>谁付费:</b> 每个会话、每个用户、永远</li>
+      </ul>
+      <div class="when">⚠️ 准入门槛极高 — description 必须极短极密</div>
+    </div>
+    <div class="tier t2">
+      <div class="bar"></div>
+      <div class="name">Tier 2 · 加载层</div>
+      <h3>Load</h3>
+      <div class="budget">~ 5,000 <span class="label">tokens / Skill</span></div>
+      <ul>
+        <li><b>加载内容:</b> 完整 SKILL.md 正文</li>
+        <li><b>触发条件:</b> 模型调用 <code>load_skill()</code> 之后</li>
+        <li><b>谁付费:</b> 余下整个对话, 直到 compaction</li>
+      </ul>
+      <div class="when">⚠️ 一个 thread 常并发加载 3-5 个 Skill, 成本叠加</div>
+    </div>
+    <div class="tier t3">
+      <div class="bar"></div>
+      <div class="name">Tier 3 · 运行层</div>
+      <h3>Runtime</h3>
+      <div class="budget">∞ <span class="label">unbounded</span></div>
+      <ul>
+        <li><b>加载内容:</b> scripts / references / assets / subskills</li>
+        <li><b>触发条件:</b> agent 真的读它时</li>
+        <li><b>谁付费:</b> 只有具体那次调用</li>
+      </ul>
+      <div class="when">✅ 这里才放无限分支逻辑 — 门槛最低</div>
+    </div>
+  </div>
+
+  <!-- ============ 5. 何时需要 / 不需要 Skill ============ -->
+  <h2 class="sec"><span class="num">5</span>何时需要 Skill, 何时不需要</h2>
+  <div class="sec-lede">第一原则推不出答案 — 让 agent 先在没有这个 Skill 的情况下跑几组 hero query, 看它做得够不够好。</div>
+  <div class="split">
+    <div class="pane yes">
+      <h3><span class="ico">✓</span>这时候你确实需要 Skill</h3>
+      <ul>
+        <li><span class="dot"></span><div><b>没有特殊 context, agent 必然做错</b>的任务</div></li>
+        <li><span class="dot"></span><div>多次运行间存在<b>你无法接受的不确定性</b></div></li>
+        <li><span class="dot"></span><div>知识本身<b>稳定但不在训练集</b>里 (内部知识、知识截止后的新事)</div></li>
+        <li><span class="dot"></span><div>企业专有<b>工作流</b>或者品味/审美 (字体、设计判断)</div></li>
+      </ul>
+    </div>
+    <div class="pane no">
+      <h3><span class="ico">✗</span>这时候你不需要 Skill</h3>
+      <ul>
+        <li><span class="dot"></span><div>只是<b>一串 git 命令</b> — 模型本来就会, 这是文档不是 Skill</div></li>
+        <li><span class="dot"></span><div>复述 <b>system prompt</b> 里已经有的内容 — 多数请求都用到的应该放全局</div></li>
+        <li><span class="dot"></span><div>内容<b>变化比你能维护的速度快</b> (远程 MCP 工具版本频繁变) — 写进去只会 drift</div></li>
+        <li><span class="dot"></span><div>能用 prompt 里一句话解决的事</div></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ 6. description 写法对比 ============ -->
+  <h2 class="sec"><span class="num">6</span>"Description" — 全 Skill 最难写的一行</h2>
+  <div class="sec-lede">它是路由触发器, 不是内部文档。每一个词都在抢模型的注意力。</div>
+  <div class="desc-compare">
+    <div class="row bad">
+      <div class="label">BAD</div>
+      <div class="body">"This Skill monitors pull requests and reports CI status to the user."<br><span style="color:#9a9a9a">→ 在描述 Skill 做什么 (像内部 README)</span></div>
+    </div>
+    <div class="row good">
+      <div class="label">GOOD</div>
+      <div class="body">"<code>Load when</code> the user says <b>babysit my PR</b>, <b>watch CI</b>, or <b>make sure this lands</b>."<br><span style="color:#5b5b5b">→ 描述用户什么时候会触发, 用真实查询语料</span></div>
+    </div>
+  </div>
+  <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-soft)">
+    <span style="background:var(--accent-soft);color:var(--accent);padding:4px 10px;border-radius:14px;font-weight:600">✓ 以 Load when... 开头</span>
+    <span style="background:var(--accent-soft);color:var(--accent);padding:4px 10px;border-radius:14px;font-weight:600">✓ ≤ 50 词</span>
+    <span style="background:var(--accent-soft);color:var(--accent);padding:4px 10px;border-radius:14px;font-weight:600">✓ 直接引用真实用户原声</span>
+    <span style="background:var(--red-soft);color:var(--red);padding:4px 10px;border-radius:14px;font-weight:600">✗ 不要概述 workflow</span>
+    <span style="background:var(--red-soft);color:var(--red);padding:4px 10px;border-radius:14px;font-weight:600">✗ 不要写"This Skill does..."</span>
+  </div>
+
+  <!-- ============ 7. 6 步构建流程 ============ -->
+  <h2 class="sec"><span class="num">7</span>构建流程: 6 步 (从第 0 步开始)</h2>
+  <div class="sec-lede">注意: <b>不是先写正文</b>。先写 evals, 再写 description, 正文才是第 2 步。</div>
+  <div class="steps">
+    <div class="step highlight">
+      <div class="stepno">STEP 0</div>
+      <h3>写 evals</h3>
+      <p>真实用户查询 + 已知失败案例 + 邻域混淆案例。<b>反例比正例更有力</b>。</p>
+    </div>
+    <div class="step highlight">
+      <div class="stepno">STEP 1</div>
+      <h3>写 description</h3>
+      <p>最难的一行。先把路由调对, 再管内容。</p>
+    </div>
+    <div class="step">
+      <div class="stepno">STEP 2</div>
+      <h3>写正文</h3>
+      <p>跳过显而易见的命令串。用意图描述,不要写死步骤。重点放 gotchas。</p>
+    </div>
+    <div class="step">
+      <div class="stepno">STEP 3</div>
+      <h3>用上层级</h3>
+      <p>条件分支、大体量内容拆到 scripts/ references/ assets/。</p>
+    </div>
+    <div class="step">
+      <div class="stepno">STEP 4</div>
+      <h3>分支迭代</h3>
+      <p>在分支上跑大量 eval。description 的字词调整放在这一步, 不要在合入后改。</p>
+    </div>
+    <div class="step">
+      <div class="stepno">STEP 5</div>
+      <h3>Ship</h3>
+      <p>提交一个完整变更集 + eval 集。reviewer 会感谢你。</p>
+    </div>
+  </div>
+
+  <!-- ============ 8. Gotchas Flywheel ============ -->
+  <h2 class="sec"><span class="num">8</span>维护期: Gotchas 飞轮</h2>
+  <div class="sec-lede">Skill 上线后, <b>不要再改 description</b>。维护几乎全是"追加 gotchas"。看到失败 → 加一条。</div>
+  <div class="flywheel">
+    <div class="row">
+      <div class="trigger"><b>agent 在某事上失败</b></div>
+      <div class="arrow">→</div>
+      <div class="action">追加一条 gotcha</div>
+    </div>
+    <div class="row">
+      <div class="trigger"><b>agent 跑偏加载了它</b> (不该加载时加载)</div>
+      <div class="arrow">→</div>
+      <div class="action">收紧 description + 加负例 eval</div>
+    </div>
+    <div class="row">
+      <div class="trigger"><b>agent 该加载没加载</b></div>
+      <div class="arrow">→</div>
+      <div class="action">补关键词 + 加正例 eval</div>
+    </div>
+    <div class="row">
+      <div class="trigger"><b>system prompt 发生变化</b></div>
+      <div class="arrow">→</div>
+      <div class="action">检查冲突或重复</div>
+    </div>
+  </div>
+
+  <!-- ============ 9. Eval 套件 ============ -->
+  <h2 class="sec"><span class="num">9</span>需要哪几类 Eval</h2>
+  <div class="sec-lede">Perplexity 至少跑这三类, 并且要<b>在多个模型 (Sonnet / Opus / GPT) 上各跑一遍</b>。</div>
+  <div class="tldr">
+    <div class="card">
+      <span class="tag">EVAL 1</span>
+      <h3>加载行为</h3>
+      <p>该路由时路由到吗? 不该路由时被拦住吗? Precision / Recall / Forbidden checks。新 Skill 不能破坏既有边界。</p>
+    </div>
+    <div class="card">
+      <span class="tag warm">EVAL 2</span>
+      <h3>渐进加载</h3>
+      <p>Skill 加载后, agent 有没有继续读取该读的 reference / asset 文件? 例如 finance Skill 是否读了 <code>FORMATTING.md</code>。</p>
+    </div>
+    <div class="card">
+      <span class="tag green">EVAL 3</span>
+      <h3>端到端任务</h3>
+      <p>跑完整 agent loop, 用 LLM judge 按 rubric 打分。验证最终交付质量, 而不只是路由对错。</p>
+    </div>
+  </div>
+
+  <!-- ============ 10. Takeaways ============ -->
+  <h2 class="sec"><span class="num">10</span>带走 3 条</h2>
+  <div class="takeaways">
+    <h3>核心 takeaway</h3>
+    <ol>
+      <li><b>Evals 先于 Skill</b>。包含负例和针对邻域 Skill 的 forbidden load 测试。这是唯一能保护"新增 Skill 不伤害老 Skill"的护栏。</li>
+      <li><b>description 是最难的部分</b>。"Load when…" 起头, 每个词都在抢注意力 — 反复推敲到不能再短。</li>
+      <li><b>Gotchas 价值最高</b>。先薄一点, agent 跌坑就追加。Skill 是 append-mostly, 不要不断改 description。</li>
+    </ol>
+    <p style="margin:18px 0 0;font-size:13px;color:rgba(255,255,255,.7);font-style:italic">
+      "我之所以把它写得更长, 只是因为我没有闲暇把它写得更短。" — Blaise Pascal
+    </p>
+  </div>
+
+  <footer>
+    原文 (中英对照): <a href="https://bytedance.larkoffice.com/docx/RKvEduXgVoSu4uxxGSqcGCFynAc" target="_blank">Perplexity Agent Skills 指南 · 飞书</a>
+    · 可视化精读版 · 单文件, 无外部依赖
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "slug": "claude-html-as-better-docs",
+      "title": "Claude Code 里的 HTML：不只是网页，而是更好的工作文档",
+      "tags": [
+        "HTML",
+        "Claude Code",
+        "Anthropic",
+        "译文"
+      ],
+      "added": "2026-05-11",
+      "size_kb": 974
+    },
+    {
+      "slug": "perplexity-agent-skills-guide",
+      "title": "Agent Skills 设计指南 · 可视化精读",
+      "tags": [
+        "Agent",
+        "Skill",
+        "Perplexity",
+        "可视化精读"
+      ],
+      "added": "2026-05-11",
+      "size_kb": 28
+    }
+  ]
+}
