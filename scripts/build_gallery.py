@@ -10,9 +10,51 @@ from pathlib import Path
 LIB = Path(__file__).resolve().parent.parent
 META = LIB / "metadata.json"
 INDEX = LIB / "index.html"
+ARTIFACTS = LIB / "artifacts"
 
 SITE_TITLE = "Reading Library"
 SITE_SUBTITLE = "Visualized articles, dashboards & artifacts"
+
+HOME_BUTTON_MARK = "<!-- HL_HOME_BUTTON_v1 -->"
+HOME_BUTTON_SNIPPET = """<!-- HL_HOME_BUTTON_v1 -->
+<a href="../" class="hl-home-btn" aria-label="返回首页">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/>
+  </svg>
+  <span>Library</span>
+</a>
+<style>
+  .hl-home-btn{position:fixed;top:16px;right:16px;z-index:99999;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:#1d1d1f;text-decoration:none;font:500 13px/1 -apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;box-shadow:0 1px 3px rgba(0,0,0,.06),0 6px 16px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.05);transition:transform .15s,box-shadow .15s,background .15s}
+  .hl-home-btn:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.08),0 10px 22px rgba(0,0,0,.1);background:rgba(255,255,255,.92)}
+  .hl-home-btn svg{width:14px;height:14px}
+  @media (prefers-color-scheme:dark){.hl-home-btn{background:rgba(28,28,30,.78);color:#f5f5f7;border-color:rgba(255,255,255,.08)}.hl-home-btn:hover{background:rgba(44,44,46,.92)}}
+  @media print{.hl-home-btn{display:none}}
+</style>
+"""
+
+
+def inject_home_button(artifacts_dir: Path) -> int:
+    """Add a floating 'back to library' button to every artifact HTML.
+
+    Idempotent: skips files that already contain HOME_BUTTON_MARK.
+    Returns the number of files newly injected.
+    """
+    if not artifacts_dir.exists():
+        return 0
+    injected = 0
+    for path in sorted(artifacts_dir.glob("*.html")):
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        if HOME_BUTTON_MARK in text:
+            continue
+        lower = text.lower()
+        idx = lower.rfind("</body>")
+        if idx >= 0:
+            new_text = text[:idx] + HOME_BUTTON_SNIPPET + text[idx:]
+        else:
+            new_text = text + "\n" + HOME_BUTTON_SNIPPET
+        path.write_text(new_text, encoding="utf-8")
+        injected += 1
+    return injected
 
 
 def main():
@@ -20,6 +62,10 @@ def main():
         items = []
     else:
         items = json.loads(META.read_text()).get("items", [])
+
+    n = inject_home_button(ARTIFACTS)
+    if n:
+        print(f"injected home button into {n} artifact(s)")
 
     # tag counts
     tag_counts = {}
