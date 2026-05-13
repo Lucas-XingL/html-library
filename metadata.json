@@ -1,6 +1,17 @@
 {
   "items": [
     {
+      "slug": "miaoda-integration-patterns",
+      "title": "主 Agent × 妙搭 Coding Agent · 接入方案对比",
+      "tags": [
+        "Agent架构",
+        "接入方案",
+        "可视化精读"
+      ],
+      "added": "2026-05-13",
+      "size_kb": 41
+    },
+    {
       "slug": "claude-html-as-better-docs",
       "title": "Claude Code 里的 HTML：不只是网页，而是更好的工作文档",
       "tags": [

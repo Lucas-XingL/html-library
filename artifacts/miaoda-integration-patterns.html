@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>主 Agent × 妙搭 Coding Agent · 接入方案对比</title>
+<style>
+  :root{
+    --bg:#fafafa; --fg:#1d1d1f; --muted:#6e6e73;
+    --line:#e5e5ea; --accent:#0071e3; --accent-soft:#e8f1ff;
+    --warn:#ff9500; --warn-soft:#fff4e0;
+    --bad:#ff3b30; --bad-soft:#ffe9e7;
+    --good:#34c759; --good-soft:#e6f8ec;
+    --purple:#af52de; --purple-soft:#f4e8fa;
+    --teal:#5ac8fa; --teal-soft:#e3f5fc;
+    --card:#ffffff;
+    --shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.04);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased}
+  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;line-height:1.6;letter-spacing:.01em}
+  .wrap{max-width:1040px;margin:0 auto;padding:64px 28px 96px}
+  header{margin-bottom:48px}
+  .eyebrow{color:var(--muted);font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+  h1{font-size:38px;line-height:1.15;letter-spacing:-.02em;margin:0 0 20px;font-weight:700}
+  .lede{font-size:18px;background:var(--accent-soft);border-left:4px solid var(--accent);padding:18px 22px;border-radius:8px;margin:0}
+  .lede b{font-weight:600}
+
+  h2{font-size:26px;margin:56px 0 18px;font-weight:600;border-top:1px solid var(--line);padding-top:36px}
+  h3{font-size:19px;margin:24px 0 12px;font-weight:600}
+  h4{font-size:15px;margin:18px 0 8px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  p{margin:0 0 14px}
+  ul,ol{margin:0 0 14px;padding-left:22px}
+  li{margin:4px 0}
+  code{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:#f1f1f3;padding:1px 6px;border-radius:5px}
+
+  table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin:14px 0 8px;font-size:14.5px}
+  th,td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:none}
+  th{background:#f5f5f7;font-weight:600;font-size:13.5px}
+
+  .card{background:var(--card);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin:16px 0}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media (max-width:780px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+  .tag{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.02em}
+  .tag.warn{background:var(--warn-soft);color:#a35300}
+  .tag.bad{background:var(--bad-soft);color:#a8261d}
+  .tag.good{background:var(--good-soft);color:#1d7a36}
+  .tag.info{background:var(--accent-soft);color:#0a4ea0}
+  .tag.purple{background:var(--purple-soft);color:#6a2891}
+  .tag.teal{background:var(--teal-soft);color:#0a6e8c}
+  .tag.mute{background:#eee;color:#555}
+
+  /* Pattern card */
+  .pattern-card{background:var(--card);border-radius:var(--radius);padding:24px 26px;box-shadow:var(--shadow);margin:24px 0;border-top:4px solid var(--accent)}
+  .pattern-card.b{border-top-color:var(--purple)}
+  .pattern-card.c{border-top-color:var(--teal)}
+  .pattern-card.d{border-top-color:var(--warn)}
+  .pattern-card.e{border-top-color:var(--good)}
+  .pattern-card h3{margin-top:0;font-size:22px}
+  .pattern-card .why{background:#fafafa;border-radius:8px;padding:12px 16px;margin:12px 0;font-size:14.5px;color:#444}
+  .pattern-card .why b{color:var(--fg)}
+
+  .pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+  @media (max-width:680px){.pros-cons{grid-template-columns:1fr}}
+  .pros, .cons{padding:14px 16px;border-radius:10px;font-size:14px}
+  .pros{background:var(--good-soft);color:#1d4d27}
+  .cons{background:var(--bad-soft);color:#7c1d18}
+  .pros h4, .cons h4{margin:0 0 6px;font-size:13px;color:inherit;letter-spacing:.06em}
+  .pros ul, .cons ul{margin:0;padding-left:18px}
+
+  /* SVG container */
+  .diagram{margin:14px 0;padding:18px;background:#fbfbfd;border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+  .diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+
+  /* legend dots */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 20px;font-size:13px;color:var(--muted)}
+  .legend .dot{display:inline-flex;align-items:center;gap:6px}
+  .legend .dot::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--accent)}
+  .legend .dot.miaoda::before{background:#af52de}
+  .legend .dot.tool::before{background:#34c759}
+  .legend .dot.flow::before{background:#ff9500}
+
+  .pyramid .row{display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:10px;margin:6px 0;background:var(--card);box-shadow:var(--shadow)}
+  .pyramid .lvl{flex:0 0 90px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .pyramid .row.l1{background:#0b0b0d;color:#f5f5f7}
+  .pyramid .row.l1 .lvl{color:#999}
+
+  /* Decision tree */
+  .tree{background:var(--card);border-radius:12px;padding:24px;box-shadow:var(--shadow);margin:16px 0}
+
+  details{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 20px;margin:10px 0}
+  details summary{cursor:pointer;font-weight:600}
+
+  footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Multi-Agent 架构 · 通用 Agent × 妙搭 Coding Agent · 接入方案</div>
+  <h1>主 Agent 怎么接妙搭？<br/>5 种方案 + 流程图 + 优劣对比</h1>
+  <p class="lede">
+    <b>结论先行：</b>5 种接入方案分别是 <b>RPC、Sub-agent、Skill、Hand-off、A2A</b>。
+    给你的<b>推荐路径</b>是「<b>A → B → 局部 D</b>」三段式：
+    起步用 <b>RPC</b>（最简单），coding 任务复杂后升级 <b>Sub-agent</b>（能跑完整循环），
+    需要沉浸式 IDE/Canvas 体验时再做 <b>Hand-off</b>（整个会话交给妙搭）。
+  </p>
+  <div class="legend" style="margin-top:18px">
+    <span class="dot">主 Agent（你）</span>
+    <span class="dot miaoda">妙搭 Agent</span>
+    <span class="dot tool">工具 / 服务</span>
+    <span class="dot flow">数据流</span>
+  </div>
+</header>
+
+<!-- 1. 类比 -->
+<section>
+  <h2>1. 用厨房类比理解 5 种方案</h2>
+  <p style="color:var(--muted)">把你的<b>主 Agent</b>想象成<b>你家厨房</b>，妙搭是<b>外面的专业餐馆</b>。「让妙搭帮你做菜」可以有 5 种方式：</p>
+  <table>
+    <thead><tr><th style="width:80px">方案</th><th style="width:200px">厨房类比</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td><b>A · RPC</b></td><td>打电话点外卖</td><td>下单 → 等送达 → 收菜，你不用操心怎么做的</td></tr>
+      <tr><td><b>B · Sub-agent</b></td><td>雇个临时工来你家</td><td>把"做一桌菜"的任务交给他，他自己买菜、备料、出餐，最后把成品给你</td></tr>
+      <tr><td><b>C · Skill</b></td><td>买他们的菜谱</td><td>不联系餐馆，把菜谱（prompt + 工具）拿过来你自己做</td></tr>
+      <tr><td><b>D · Hand-off</b></td><td>把客人介绍过去</td><td>客人吃这顿就在餐馆里吃，你这边的招待结束</td></tr>
+      <tr><td><b>E · A2A 协议</b></td><td>两家餐馆有行业对讲机</td><td>两边的 agent 用统一协议互发消息，谁需要谁喊</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 2. 上下文 -->
+<section>
+  <h2>2. 上下文：你的架构现状</h2>
+  <div class="diagram">
+    <svg viewBox="0 0 800 360" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#ff9500"/>
+        </marker>
+      </defs>
+
+      <!-- User -->
+      <rect x="20" y="20" width="120" height="50" rx="10" fill="#0071e3"/>
+      <text x="80" y="50" text-anchor="middle" fill="white" font-family="-apple-system" font-size="14" font-weight="600">用户</text>
+
+      <!-- Main agent -->
+      <rect x="320" y="20" width="180" height="60" rx="10" fill="#0b0b0d"/>
+      <text x="410" y="44" text-anchor="middle" fill="white" font-family="-apple-system" font-size="14" font-weight="700">主 Agent</text>
+      <text x="410" y="64" text-anchor="middle" fill="#999" font-family="-apple-system" font-size="11">(规划 / 路由 / 调度)</text>
+
+      <!-- existing sub-agents -->
+      <rect x="80" y="160" width="130" height="50" rx="10" fill="#e8f1ff" stroke="#0071e3" stroke-width="1.5"/>
+      <text x="145" y="190" text-anchor="middle" fill="#0a4ea0" font-family="-apple-system" font-size="13" font-weight="600">Doc Agent</text>
+
+      <rect x="230" y="160" width="130" height="50" rx="10" fill="#e8f1ff" stroke="#0071e3" stroke-width="1.5"/>
+      <text x="295" y="190" text-anchor="middle" fill="#0a4ea0" font-family="-apple-system" font-size="13" font-weight="600">PPT Agent</text>
+
+      <rect x="380" y="160" width="130" height="50" rx="10" fill="#e8f1ff" stroke="#0071e3" stroke-width="1.5"/>
+      <text x="445" y="190" text-anchor="middle" fill="#0a4ea0" font-family="-apple-system" font-size="13" font-weight="600">Excel Agent</text>
+
+      <!-- Miaoda -->
+      <rect x="560" y="160" width="200" height="60" rx="10" fill="#f4e8fa" stroke="#af52de" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="660" y="184" text-anchor="middle" fill="#6a2891" font-family="-apple-system" font-size="14" font-weight="700">妙搭 Coding Agent</text>
+      <text x="660" y="204" text-anchor="middle" fill="#6a2891" font-family="-apple-system" font-size="11">(? 怎么接进来)</text>
+
+      <!-- arrows -->
+      <line x1="140" y1="45" x2="320" y2="48" stroke="#ff9500" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="380" y1="80" x2="155" y2="160" stroke="#ff9500" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="410" y1="80" x2="295" y2="160" stroke="#ff9500" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="440" y1="80" x2="445" y2="160" stroke="#ff9500" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="480" y1="80" x2="650" y2="160" stroke="#af52de" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arr)"/>
+
+      <!-- question -->
+      <text x="660" y="280" text-anchor="middle" fill="#a35300" font-family="-apple-system" font-size="13" font-weight="600">本次要解决的问题 ↑</text>
+      <text x="660" y="300" text-anchor="middle" fill="#a35300" font-family="-apple-system" font-size="13">这条接入线选什么形式</text>
+    </svg>
+  </div>
+  <p style="color:var(--muted);font-size:14px">现状：Doc/PPT/Excel 都是你自己团队搞定的"垂直子 Agent"。妙搭是<b>另一支团队的成熟产品</b>，不是你能直接重写的。所以接入方式要比内部 sub-agent 更"外交"一些。</p>
+</section>
+
+<!-- 3. 五种方案 -->
+<section>
+  <h2>3. 五种接入方案 · 逐个画</h2>
+
+  <!-- A: RPC -->
+  <div class="pattern-card">
+    <span class="tag info">方案 A</span>
+    <h3>RPC · 把妙搭当一个工具调</h3>
+    <p>主 Agent 在自己的 tool 列表里加一个 <code>miaoda_code(task, context)</code>。命中时打 HTTP/gRPC 请求过去，妙搭服务端跑完一次性返回结果。</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#ff9500"/>
+          </marker>
+        </defs>
+
+        <rect x="20" y="100" width="100" height="44" rx="8" fill="#0071e3"/>
+        <text x="70" y="127" text-anchor="middle" fill="white" font-size="13" font-weight="600">用户</text>
+
+        <rect x="180" y="90" width="180" height="64" rx="10" fill="#0b0b0d"/>
+        <text x="270" y="116" text-anchor="middle" fill="white" font-size="14" font-weight="700">主 Agent</text>
+        <text x="270" y="136" text-anchor="middle" fill="#999" font-size="11">tools: [doc, ppt, miaoda]</text>
+
+        <rect x="440" y="80" width="150" height="84" rx="10" fill="#e6f8ec" stroke="#34c759" stroke-width="1.5"/>
+        <text x="515" y="106" text-anchor="middle" fill="#1d7a36" font-size="12" font-weight="700">tool: miaoda_code</text>
+        <text x="515" y="124" text-anchor="middle" fill="#1d7a36" font-size="11">POST /v1/code/run</text>
+        <text x="515" y="142" text-anchor="middle" fill="#1d7a36" font-size="11">{ task, context }</text>
+
+        <rect x="640" y="90" width="140" height="64" rx="10" fill="#f4e8fa" stroke="#af52de" stroke-width="2"/>
+        <text x="710" y="116" text-anchor="middle" fill="#6a2891" font-size="13" font-weight="700">妙搭 API</text>
+        <text x="710" y="136" text-anchor="middle" fill="#6a2891" font-size="11">(他们 own 整个 loop)</text>
+
+        <line x1="120" y1="122" x2="180" y2="122" stroke="#ff9500" stroke-width="2" marker-end="url(#arrA)"/>
+        <line x1="360" y1="122" x2="440" y2="122" stroke="#ff9500" stroke-width="2" marker-end="url(#arrA)"/>
+        <line x1="590" y1="122" x2="640" y2="122" stroke="#ff9500" stroke-width="2" marker-end="url(#arrA)"/>
+
+        <!-- return arrow -->
+        <line x1="700" y1="170" x2="270" y2="170" stroke="#34c759" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrA)"/>
+        <text x="485" y="190" text-anchor="middle" fill="#1d7a36" font-size="11">↑ 返回代码/URL/产物</text>
+      </svg>
+    </div>
+
+    <div class="why">
+      <b>本质：</b>妙搭对你来说是个"黑盒服务"，你不关心他们里面是 1 个 agent 还是 10 个。一个 request/response 来回。
+    </div>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h4>优势</h4>
+        <ul>
+          <li>实现最简单，1–2 天就能联调</li>
+          <li>边界清晰，他们的 bug 不会污染你的链路</li>
+          <li>无状态、可并发、好运维</li>
+          <li>主 Agent 完全保留控制权</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>劣势</h4>
+        <ul>
+          <li>不支持流式 / 实时反馈（除非 SSE，多一层复杂）</li>
+          <li>长任务（&gt;30s）需要轮询 / webhook，体验差</li>
+          <li>coding 任务往往是"多轮迭代"的，单次调用很受限</li>
+          <li>主 Agent 看不到中间过程，无法纠偏</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- B: Sub-agent -->
+  <div class="pattern-card b">
+    <span class="tag purple">方案 B</span>
+    <h3>Sub-agent · 主 Agent 派生一个妙搭子 Agent</h3>
+    <p>主 Agent 用 <code>delegate_task</code> 拉起一个"妙搭子智能体"，把目标 + 上下文交过去。<b>妙搭 agent 有自己的完整 loop</b>：自己的模型、自己的工具集、自己的工作目录。跑完后把摘要 + 产物链接回报主 Agent。</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 820 320" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#ff9500"/>
+          </marker>
+        </defs>
+
+        <rect x="20" y="120" width="100" height="44" rx="8" fill="#0071e3"/>
+        <text x="70" y="147" text-anchor="middle" fill="white" font-size="13" font-weight="600">用户</text>
+
+        <rect x="170" y="110" width="180" height="64" rx="10" fill="#0b0b0d"/>
+        <text x="260" y="136" text-anchor="middle" fill="white" font-size="14" font-weight="700">主 Agent</text>
+        <text x="260" y="156" text-anchor="middle" fill="#999" font-size="11">delegate_task → 妙搭</text>
+
+        <!-- spawned miaoda sub-agent box -->
+        <rect x="430" y="40" width="370" height="240" rx="12" fill="#f4e8fa" stroke="#af52de" stroke-width="2" stroke-dasharray="8 4"/>
+        <text x="615" y="64" text-anchor="middle" fill="#6a2891" font-size="13" font-weight="700">妙搭 Sub-Agent · 独立沙箱</text>
+
+        <rect x="450" y="80" width="160" height="48" rx="8" fill="white" stroke="#af52de"/>
+        <text x="530" y="108" text-anchor="middle" fill="#6a2891" font-size="13" font-weight="600">妙搭 LLM</text>
+
+        <rect x="630" y="80" width="150" height="48" rx="8" fill="white" stroke="#af52de"/>
+        <text x="705" y="100" text-anchor="middle" fill="#6a2891" font-size="12" font-weight="600">工作目录 / 沙箱</text>
+        <text x="705" y="118" text-anchor="middle" fill="#6a2891" font-size="11">(VM / Docker)</text>
+
+        <rect x="450" y="148" width="100" height="40" rx="8" fill="white" stroke="#af52de"/>
+        <text x="500" y="174" text-anchor="middle" fill="#6a2891" font-size="12">write_file</text>
+
+        <rect x="560" y="148" width="100" height="40" rx="8" fill="white" stroke="#af52de"/>
+        <text x="610" y="174" text-anchor="middle" fill="#6a2891" font-size="12">run_cmd</text>
+
+        <rect x="670" y="148" width="110" height="40" rx="8" fill="white" stroke="#af52de"/>
+        <text x="725" y="174" text-anchor="middle" fill="#6a2891" font-size="12">deploy / preview</text>
+
+        <!-- internal loop arrow -->
+        <path d="M 615 200 q 0 50 -100 50 q -100 0 -100 -50" fill="none" stroke="#af52de" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrB)"/>
+        <text x="615" y="265" text-anchor="middle" fill="#6a2891" font-size="11">自身多轮 loop</text>
+
+        <!-- main↔sub -->
+        <line x1="120" y1="142" x2="170" y2="142" stroke="#ff9500" stroke-width="2" marker-end="url(#arrB)"/>
+        <line x1="350" y1="142" x2="430" y2="142" stroke="#ff9500" stroke-width="2" marker-end="url(#arrB)"/>
+        <line x1="430" y1="160" x2="350" y2="160" stroke="#34c759" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrB)"/>
+      </svg>
+    </div>
+
+    <div class="why">
+      <b>本质：</b>主 Agent "委派一个完整任务"，子 Agent 有完整 agent loop（不是单次调用），跑完一次性回报结果。
+      像把项目<b>外包</b>给一个有完整生产能力的小作坊。
+    </div>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h4>优势</h4>
+        <ul>
+          <li>能处理复杂、多轮、多工具的 coding 任务</li>
+          <li>主 Agent 上下文不被污染（子 agent 自己消化）</li>
+          <li>支持并发派生多个子任务</li>
+          <li>主 Agent 仍是"老板"，可中断 / 取消</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>劣势</h4>
+        <ul>
+          <li>需要约定标准的<b>任务交接协议</b>（目标、上下文、产物格式）</li>
+          <li>子 Agent 跑得久，主 Agent 要么阻塞要么定期反查</li>
+          <li>主 Agent 看不到中间过程，纠偏只能在轮次之间</li>
+          <li>资源（VM / GPU）按需启动，成本高</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- C: Skill -->
+  <div class="pattern-card c">
+    <span class="tag teal">方案 C</span>
+    <h3>Skill · 只拿菜谱，不联他们服务</h3>
+    <p>不调妙搭服务，把他们的核心资产——<b>prompt 模板 + 工具说明 + few-shot 数据</b>——以 Skill 形式注入你自己的主 Agent。模型还是你的，工具还是你的，只是<b>"行为模式"</b>学他们。</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#ff9500"/>
+          </marker>
+        </defs>
+
+        <rect x="20" y="110" width="100" height="44" rx="8" fill="#0071e3"/>
+        <text x="70" y="137" text-anchor="middle" fill="white" font-size="13" font-weight="600">用户</text>
+
+        <rect x="170" y="60" width="270" height="140" rx="12" fill="#0b0b0d"/>
+        <text x="305" y="84" text-anchor="middle" fill="white" font-size="14" font-weight="700">主 Agent (你的模型)</text>
+
+        <rect x="190" y="100" width="100" height="36" rx="6" fill="#e3f5fc"/>
+        <text x="240" y="123" text-anchor="middle" fill="#0a6e8c" font-size="11" font-weight="600">妙搭 Skill</text>
+
+        <rect x="300" y="100" width="120" height="36" rx="6" fill="#e8f1ff"/>
+        <text x="360" y="123" text-anchor="middle" fill="#0a4ea0" font-size="11" font-weight="600">自家工具集</text>
+
+        <text x="305" y="170" text-anchor="middle" fill="#bbb" font-size="11">Skill 注入到 system prompt</text>
+        <text x="305" y="186" text-anchor="middle" fill="#bbb" font-size="11">模型按妙搭"风格"行动</text>
+
+        <!-- offline source -->
+        <rect x="510" y="60" width="240" height="60" rx="10" fill="#e3f5fc" stroke="#5ac8fa" stroke-width="1.5"/>
+        <text x="630" y="84" text-anchor="middle" fill="#0a6e8c" font-size="13" font-weight="700">妙搭团队</text>
+        <text x="630" y="104" text-anchor="middle" fill="#0a6e8c" font-size="11">交付 prompt / skill / few-shot</text>
+
+        <rect x="510" y="150" width="240" height="50" rx="10" fill="white" stroke="#5ac8fa" stroke-dasharray="4 4"/>
+        <text x="630" y="180" text-anchor="middle" fill="#0a6e8c" font-size="11">不参与运行时</text>
+
+        <line x1="120" y1="132" x2="170" y2="132" stroke="#ff9500" stroke-width="2" marker-end="url(#arrC)"/>
+        <line x1="510" y1="100" x2="440" y2="120" stroke="#5ac8fa" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrC)"/>
+      </svg>
+    </div>
+
+    <div class="why">
+      <b>本质：</b>"知识转移"而非"服务调用"。妙搭交付一份 <i>Skill 包</i> 给你，运行时和他们已无关系。
+    </div>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h4>优势</h4>
+        <ul>
+          <li>运行时零延迟、零服务依赖</li>
+          <li>不存在网络 / 鉴权 / SLA 风险</li>
+          <li>主 Agent 完全统一（一个模型一套上下文）</li>
+          <li>成本最低</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>劣势</h4>
+        <ul>
+          <li>失去他们独家的模型优势（如果他们模型比你强）</li>
+          <li>失去他们独家的工具生态（IDE、预览、部署等）</li>
+          <li>资产需要持续同步更新，容易过时</li>
+          <li>不能利用他们的算力 / 沙箱基础设施</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- D: Hand-off -->
+  <div class="pattern-card d">
+    <span class="tag warn">方案 D</span>
+    <h3>Hand-off · 完全交接给妙搭</h3>
+    <p>主 Agent 只做"接待 + 分流"，命中 coding 意图后<b>把整段会话交接给妙搭</b>。之后用户和妙搭直接对话，你这边只在最终需要回流时再接管。</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 820 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrD" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#ff9500"/>
+          </marker>
+        </defs>
+
+        <rect x="20" y="120" width="100" height="44" rx="8" fill="#0071e3"/>
+        <text x="70" y="147" text-anchor="middle" fill="white" font-size="13" font-weight="600">用户</text>
+
+        <rect x="170" y="50" width="200" height="60" rx="10" fill="#0b0b0d"/>
+        <text x="270" y="74" text-anchor="middle" fill="white" font-size="13" font-weight="700">主 Agent · 第 1 轮</text>
+        <text x="270" y="94" text-anchor="middle" fill="#999" font-size="11">检测到 coding 意图</text>
+
+        <rect x="170" y="170" width="200" height="60" rx="10" fill="#f5f5f7" stroke="#ccc" stroke-dasharray="4 4"/>
+        <text x="270" y="194" text-anchor="middle" fill="#aaa" font-size="13" font-weight="600">主 Agent · 第 N 轮</text>
+        <text x="270" y="214" text-anchor="middle" fill="#aaa" font-size="11">(已交接，不再参与)</text>
+
+        <rect x="450" y="100" width="280" height="100" rx="12" fill="#fff4e0" stroke="#ff9500" stroke-width="2"/>
+        <text x="590" y="128" text-anchor="middle" fill="#a35300" font-size="14" font-weight="700">妙搭 Agent · 接管全部会话</text>
+        <text x="590" y="148" text-anchor="middle" fill="#a35300" font-size="11">自有 IDE / Canvas / 预览 / 部署</text>
+        <text x="590" y="170" text-anchor="middle" fill="#a35300" font-size="11">多轮 coding 全在他们域内</text>
+        <text x="590" y="188" text-anchor="middle" fill="#a35300" font-size="11">用户感受："换了个产品"</text>
+
+        <line x1="120" y1="142" x2="170" y2="80" stroke="#ff9500" stroke-width="2" marker-end="url(#arrD)"/>
+        <line x1="370" y1="80" x2="450" y2="120" stroke="#ff9500" stroke-width="2" marker-end="url(#arrD)"/>
+        <line x1="450" y1="180" x2="120" y2="160" stroke="#ff9500" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrD)"/>
+      </svg>
+    </div>
+
+    <div class="why">
+      <b>本质：</b>你不再是中间人，<b>会话所有权移交</b>。最纯粹的"客人转介绍"。
+    </div>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h4>优势</h4>
+        <ul>
+          <li>用户能用到妙搭<b>完整原生体验</b>（IDE、Canvas、预览）</li>
+          <li>无需做协议适配，他们的产品力 100% 释放</li>
+          <li>主 Agent 链路短、轻、好维护</li>
+          <li>双方团队边界最清晰</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>劣势</h4>
+        <ul>
+          <li>"换了个产品"——用户体验断层</li>
+          <li>主 Agent 看不到 coding 中间产物，跨模态串联难做（例如：写完代码再生成 PPT 介绍）</li>
+          <li>会话回流难（什么时候算结束？怎么把结果带回？）</li>
+          <li>商业 / 计费 / 用户归属问题</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- E: A2A -->
+  <div class="pattern-card e">
+    <span class="tag good">方案 E</span>
+    <h3>A2A 协议 · 两个独立 Agent 互发消息</h3>
+    <p>采用标准的 Agent-to-Agent 协议（如 Anthropic ACP、Google A2A、MCP-Agent），两边都是独立 Agent，<b>通过消息总线对等通信</b>。主 Agent 既可以"喊妙搭做事"，妙搭也可以"反向请求主 Agent 给上下文"。</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 820 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#ff9500"/>
+          </marker>
+        </defs>
+
+        <rect x="20" y="120" width="100" height="44" rx="8" fill="#0071e3"/>
+        <text x="70" y="147" text-anchor="middle" fill="white" font-size="13" font-weight="600">用户</text>
+
+        <rect x="170" y="100" width="200" height="80" rx="10" fill="#0b0b0d"/>
+        <text x="270" y="128" text-anchor="middle" fill="white" font-size="14" font-weight="700">主 Agent</text>
+        <text x="270" y="150" text-anchor="middle" fill="#999" font-size="11">A2A: 我能干 X, Y, Z</text>
+        <text x="270" y="168" text-anchor="middle" fill="#999" font-size="11">subscribe: code.*</text>
+
+        <!-- A2A bus -->
+        <rect x="400" y="80" width="100" height="120" rx="10" fill="#e6f8ec" stroke="#34c759" stroke-width="2"/>
+        <text x="450" y="108" text-anchor="middle" fill="#1d7a36" font-size="13" font-weight="700">A2A</text>
+        <text x="450" y="126" text-anchor="middle" fill="#1d7a36" font-size="12" font-weight="600">消息总线</text>
+        <text x="450" y="146" text-anchor="middle" fill="#1d7a36" font-size="10">discover</text>
+        <text x="450" y="162" text-anchor="middle" fill="#1d7a36" font-size="10">request</text>
+        <text x="450" y="178" text-anchor="middle" fill="#1d7a36" font-size="10">streaming</text>
+
+        <rect x="530" y="100" width="240" height="80" rx="10" fill="#f4e8fa" stroke="#af52de" stroke-width="2"/>
+        <text x="650" y="128" text-anchor="middle" fill="#6a2891" font-size="14" font-weight="700">妙搭 Agent</text>
+        <text x="650" y="150" text-anchor="middle" fill="#6a2891" font-size="11">A2A: 我能干 code.*</text>
+        <text x="650" y="168" text-anchor="middle" fill="#6a2891" font-size="11">subscribe: spec, design</text>
+
+        <!-- bidirectional arrows -->
+        <line x1="120" y1="142" x2="170" y2="142" stroke="#ff9500" stroke-width="2" marker-end="url(#arrE)"/>
+        <line x1="370" y1="130" x2="400" y2="130" stroke="#ff9500" stroke-width="2" marker-end="url(#arrE)"/>
+        <line x1="400" y1="155" x2="370" y2="155" stroke="#34c759" stroke-width="2" marker-end="url(#arrE)"/>
+        <line x1="500" y1="130" x2="530" y2="130" stroke="#ff9500" stroke-width="2" marker-end="url(#arrE)"/>
+        <line x1="530" y1="155" x2="500" y2="155" stroke="#34c759" stroke-width="2" marker-end="url(#arrE)"/>
+
+        <text x="450" y="225" text-anchor="middle" fill="#666" font-size="11">两侧对等 · 双向异步 · 可订阅 · 可发现</text>
+      </svg>
+    </div>
+
+    <div class="why">
+      <b>本质：</b>两个 Agent 是<b>对等节点</b>，靠协议互发消息，没有谁是谁的工具。<i>未来 multi-agent 生态的方向。</i>
+    </div>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h4>优势</h4>
+        <ul>
+          <li>架构最干净，双方完全解耦</li>
+          <li>支持双向通信、异步、streaming</li>
+          <li>未来再接其他 Agent 边际成本低</li>
+          <li>符合行业演进方向（ACP / A2A）</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>劣势</h4>
+        <ul>
+          <li>双方都要按协议改造，<b>启动成本最高</b></li>
+          <li>协议本身还在演化，标准不稳</li>
+          <li>缺乏统一调试 / 观测工具</li>
+          <li>用户场景不大时是过度设计</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. 对比矩阵 -->
+<section>
+  <h2>4. 横向对比矩阵</h2>
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>A · RPC</th>
+        <th>B · Sub-agent</th>
+        <th>C · Skill</th>
+        <th>D · Hand-off</th>
+        <th>E · A2A</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><b>实现成本</b></td><td>低</td><td>中</td><td>低-中</td><td>中</td><td>高</td></tr>
+      <tr><td><b>主 Agent 控制力</b></td><td>高</td><td>中</td><td>最高</td><td>低</td><td>中</td></tr>
+      <tr><td><b>用户体验一致</b></td><td>好</td><td>好</td><td>最好</td><td>差（断层）</td><td>好</td></tr>
+      <tr><td><b>能用妙搭独家能力</b></td><td>部分</td><td>是</td><td>否</td><td>完全</td><td>是</td></tr>
+      <tr><td><b>流式 / 长任务</b></td><td>弱</td><td>中</td><td>N/A</td><td>原生</td><td>原生</td></tr>
+      <tr><td><b>跨模态串联</b><br/><span style="color:var(--muted);font-size:11px">如 写代码 + PPT 介绍</span></td><td>容易</td><td>容易</td><td>容易</td><td>难</td><td>容易</td></tr>
+      <tr><td><b>双方耦合</b></td><td>低</td><td>中</td><td>最低</td><td>低</td><td>最低</td></tr>
+      <tr><td><b>能跑多久才过时</b></td><td>1 年</td><td>2 年</td><td>0.5 年</td><td>3 年</td><td>3+ 年</td></tr>
+      <tr><td><b>典型业内对标</b></td><td>OpenAI Function Calling</td><td>Claude delegate_task</td><td>Anthropic Skills</td><td>ChatGPT GPTs 跳转</td><td>Anthropic ACP / Google A2A</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 5. 决策树 -->
+<section>
+  <h2>5. 决策树 · 该选哪个？</h2>
+  <div class="diagram">
+    <svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#666"/>
+        </marker>
+      </defs>
+
+      <!-- Q1 -->
+      <rect x="350" y="20" width="200" height="56" rx="10" fill="#0b0b0d"/>
+      <text x="450" y="44" text-anchor="middle" fill="white" font-size="13" font-weight="700">能不能只 1 次调用</text>
+      <text x="450" y="62" text-anchor="middle" fill="white" font-size="13" font-weight="700">就拿到完整结果？</text>
+
+      <!-- Q1 yes -->
+      <line x1="380" y1="76" x2="180" y2="130" stroke="#666" stroke-width="1.5" marker-end="url(#arrT)"/>
+      <text x="250" y="100" fill="#1d7a36" font-size="12" font-weight="600">能</text>
+
+      <rect x="100" y="140" width="180" height="60" rx="10" fill="#e8f1ff" stroke="#0071e3" stroke-width="2"/>
+      <text x="190" y="166" text-anchor="middle" fill="#0a4ea0" font-size="13" font-weight="700">选 A · RPC</text>
+      <text x="190" y="186" text-anchor="middle" fill="#0a4ea0" font-size="11">最简单，先跑起来</text>
+
+      <!-- Q1 no -->
+      <line x1="520" y1="76" x2="600" y2="130" stroke="#666" stroke-width="1.5" marker-end="url(#arrT)"/>
+      <text x="585" y="100" fill="#a8261d" font-size="12" font-weight="600">不能 · 多轮 / 长时</text>
+
+      <!-- Q2 -->
+      <rect x="500" y="140" width="240" height="56" rx="10" fill="#0b0b0d"/>
+      <text x="620" y="164" text-anchor="middle" fill="white" font-size="13" font-weight="700">用户需要妙搭原生</text>
+      <text x="620" y="182" text-anchor="middle" fill="white" font-size="13" font-weight="700">IDE / Canvas 体验吗？</text>
+
+      <!-- Q2 yes -->
+      <line x1="700" y1="196" x2="760" y2="240" stroke="#666" stroke-width="1.5" marker-end="url(#arrT)"/>
+      <text x="755" y="220" fill="#a35300" font-size="12" font-weight="600">需要</text>
+
+      <rect x="680" y="250" width="180" height="60" rx="10" fill="#fff4e0" stroke="#ff9500" stroke-width="2"/>
+      <text x="770" y="276" text-anchor="middle" fill="#a35300" font-size="13" font-weight="700">选 D · Hand-off</text>
+      <text x="770" y="296" text-anchor="middle" fill="#a35300" font-size="11">最纯粹的产品体验</text>
+
+      <!-- Q2 no -->
+      <line x1="560" y1="196" x2="500" y2="240" stroke="#666" stroke-width="1.5" marker-end="url(#arrT)"/>
+      <text x="500" y="225" fill="#1d7a36" font-size="12" font-weight="600">不需要</text>
+
+      <!-- Q3 -->
+      <rect x="350" y="250" width="220" height="56" rx="10" fill="#0b0b0d"/>
+      <text x="460" y="274" text-anchor="middle" fill="white" font-size="13" font-weight="700">长期还会接更多</text>
+      <text x="460" y="292" text-anchor="middle" fill="white" font-size="13" font-weight="700">第三方 agent 吗？</text>
+
+      <!-- Q3 yes -->
+      <line x1="370" y1="306" x2="190" y2="360" stroke="#666" stroke-width="1.5" marker-end="url(#arrT)"/>
+      <text x="240" y="335" fill="#1d7a36" font-size="12" font-weight="600">会，要建生态</text>
+
+      <rect x="100" y="370" width="180" height="60" rx="10" fill="#e6f8ec" stroke="#34c759" stroke-width="2"/>
+      <text x="190" y="396" text-anchor="middle" fill="#1d7a36" font-size="13" font-weight="700">选 E · A2A</text>
+      <text x="190" y="416" text-anchor="middle" fill="#1d7a36" font-size="11">长远架构</text>
+
+      <!-- Q3 no -->
+      <line x1="540" y1="306" x2="600" y2="360" stroke="#666" stroke-width="1.5" marker-end="url(#arrT)"/>
+      <text x="570" y="335" fill="#a8261d" font-size="12" font-weight="600">只有妙搭一家</text>
+
+      <rect x="500" y="370" width="220" height="60" rx="10" fill="#f4e8fa" stroke="#af52de" stroke-width="2"/>
+      <text x="610" y="396" text-anchor="middle" fill="#6a2891" font-size="13" font-weight="700">选 B · Sub-agent</text>
+      <text x="610" y="416" text-anchor="middle" fill="#6a2891" font-size="11">够用且复杂度可控</text>
+
+      <!-- C 备注 -->
+      <rect x="290" y="460" width="320" height="34" rx="8" fill="#e3f5fc" stroke="#5ac8fa" stroke-dasharray="4 4"/>
+      <text x="450" y="482" text-anchor="middle" fill="#0a6e8c" font-size="12">C · Skill 适合：他们不愿提供服务、或你只想要"行为风格"</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 6. 推荐路径 -->
+<section>
+  <h2>6. 给你的推荐路径</h2>
+  <p>不要一上来就追求"最优雅"的架构，<b>分阶段演进</b>是工业实践通行做法：</p>
+
+  <div class="pyramid">
+    <div class="row l1">
+      <div class="lvl">阶段 1</div>
+      <div><b>2 周内：RPC 联调</b> — 妙搭暴露一个 <code>POST /v1/code/task</code>，主 Agent 当 tool 调用，验证可达 / 鉴权 / 产物回传</div>
+    </div>
+    <div class="row">
+      <div class="lvl">阶段 2</div>
+      <div><b>1–2 月：升级 Sub-agent</b> — coding 任务变多轮、变长时，把 RPC 升级为"派生子 Agent"，主 Agent 只负责派单</div>
+    </div>
+    <div class="row">
+      <div class="lvl">阶段 3</div>
+      <div><b>当用户要原生 IDE：开局部 Hand-off</b> — 检测到"我要进入开发模式"时整段交接，做完再回主 Agent</div>
+    </div>
+    <div class="row">
+      <div class="lvl">阶段 4</div>
+      <div><b>3+ 月后：评估 A2A</b> — 如果你还要接更多第三方 agent（设计、营销、客服）才上 A2A，否则别折腾</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px;border-left:4px solid var(--accent)">
+    <b>不推荐：</b>纯 Skill（C）路线。原因：妙搭是一支独立产品团队、有自己的模型 / IDE / 沙箱，把他们降级成"prompt 资产"既不尊重他们的能力，也拿不到他们最大的价值。<br/>
+    <b>什么时候考虑 C：</b>你只想要"妙搭做小函数生成"这种轻量场景，且不需要他们的运行时基础设施。
+  </div>
+</section>
+
+<!-- 7. RPC 落地细节 -->
+<section>
+  <h2>7. 起步方案 (RPC) 的工程细节</h2>
+  <div class="card">
+    <h4>必须和妙搭对齐的 5 件事</h4>
+    <table>
+      <thead><tr><th style="width:140px">项</th><th>建议默认</th></tr></thead>
+      <tbody>
+        <tr><td><b>鉴权</b></td><td>双向 mTLS 或 JWT（内部服务首选 JWT）</td></tr>
+        <tr><td><b>任务模式</b></td><td>同步快任务（&lt; 10s）走 RPC；超时改异步（create_task + webhook）</td></tr>
+        <tr><td><b>上下文格式</b></td><td>主 Agent 把 user_intent + 历史摘要 + 关键产物 URL 打包成 JSON</td></tr>
+        <tr><td><b>产物回传</b></td><td>返回 URL 列表（妙搭文档 / 预览 / Git 仓库），主 Agent 上下文里只保留 URL，不内嵌代码</td></tr>
+        <tr><td><b>失败 / 重试</b></td><td>幂等 task_id；失败按错误码分类（用户错 / 模型错 / 系统错），主 Agent 决定是否重试</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Tool 定义示例（给主 Agent 看）</h4>
+    <pre style="background:#0b0b0d;color:#f5f5f7;padding:16px;border-radius:8px;font-size:12.5px;overflow:auto">{
+  "name": "miaoda_code",
+  "description": "调用妙搭 coding agent 完成代码相关任务：写一个网页/小工具/数据看板/小程序",
+  "parameters": {
+    "task": { "type": "string", "description": "用户原始诉求 + 你的理解" },
+    "context": {
+      "type": "object",
+      "properties": {
+        "history_summary": { "type": "string" },
+        "referenced_urls":  { "type": "array", "items": { "type": "string" } },
+        "preferred_stack":  { "type": "string", "enum": ["html", "react", "python", "auto"] }
+      }
+    },
+    "mode": { "type": "string", "enum": ["sync", "async"], "default": "sync" }
+  }
+}</pre>
+  </div>
+</section>
+
+<!-- 8. 一些陷阱 -->
+<section>
+  <h2>8. 新手常踩的 4 个坑</h2>
+  <div class="grid-2">
+    <div class="card"><span class="tag bad">坑 1</span>
+      <p style="margin-top:8px"><b>把代码内容回主 Agent 上下文</b><br/>
+      <span style="color:var(--muted);font-size:13.5px">几千行代码灌进主 Agent 会爆 context、拖慢一切。永远<b>只回 URL + 摘要</b>。</span></p>
+    </div>
+    <div class="card"><span class="tag bad">坑 2</span>
+      <p style="margin-top:8px"><b>意图锁定导致路由僵化</b><br/>
+      <span style="color:var(--muted);font-size:13.5px">"只要听到 code 就路由给妙搭" → 用户问"这段代码有 bug 吗"也被强制提单到妙搭。<b>用模型判断而不是关键词锁定</b>。</span></p>
+    </div>
+    <div class="card"><span class="tag bad">坑 3</span>
+      <p style="margin-top:8px"><b>主 Agent 阻塞等 sub-agent</b><br/>
+      <span style="color:var(--muted);font-size:13.5px">妙搭跑 30 分钟，你的主 Agent UI 也卡 30 分钟。<b>用任务 ID + 后台轮询 + 通知</b>模式。</span></p>
+    </div>
+    <div class="card"><span class="tag bad">坑 4</span>
+      <p style="margin-top:8px"><b>没约定产物的"权威源"</b><br/>
+      <span style="color:var(--muted);font-size:13.5px">代码到底在主 Agent 知识库里还是妙搭那边？编辑修改谁是 source of truth？<b>明确"妙搭 own 产物，主 Agent 只 own 引用"</b>。</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- 9. 一页带走 -->
+<section>
+  <h2>9. 一页带走的 3 件事</h2>
+  <div class="grid-3">
+    <div class="card"><span class="tag info">1</span>
+      <p style="margin-top:10px"><b>先 RPC，不要硬上 A2A。</b> 跑通 &gt; 优雅。</p></div>
+    <div class="card"><span class="tag purple">2</span>
+      <p style="margin-top:10px"><b>Coding 任务复杂后升级 Sub-agent。</b> 主 Agent 做派单，子 Agent 跑完整循环。</p></div>
+    <div class="card"><span class="tag warn">3</span>
+      <p style="margin-top:10px"><b>用户要原生 IDE 体验时再做 Hand-off。</b> 不要把"沉浸式开发"塞回聊天框。</p></div>
+  </div>
+</section>
+
+<footer>
+  <div>对接对象：<a href="https://miaoda.feishu.cn/home" style="color:var(--accent)">妙搭</a> · Coding Agent 团队</div>
+  <div style="margin-top:4px">方案分析 · 2026.05.12 · 多 Agent 架构通用模板</div>
+</footer>
+
+</div>
+</body>
+</html>
