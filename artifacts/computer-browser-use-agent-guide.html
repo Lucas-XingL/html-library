@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>0→1 构建高可靠 Computer / Browser Use Agent</title>
+  <style>
+    :root{
+      --bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--muted:#6e6e73;--line:#e5e5ea;
+      --blue:#2563eb;--green:#16a34a;--orange:#ea580c;--red:#dc2626;--purple:#7c3aed;
+      --shadow:0 16px 48px rgba(0,0,0,.08);--radius:28px;
+    }
+    *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#fbfbfd 0,#f5f5f7 48%,#fff 100%);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Helvetica Neue",Arial,sans-serif;line-height:1.55}
+    .wrap{max-width:1180px;margin:0 auto;padding:52px 24px 80px}.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:stretch;margin-bottom:28px}.panel{background:rgba(255,255,255,.82);border:1px solid rgba(0,0,0,.06);box-shadow:var(--shadow);border-radius:var(--radius);backdrop-filter:blur(24px);padding:34px}.eyebrow{display:inline-flex;gap:8px;align-items:center;padding:7px 12px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:13px;font-weight:700}.hero h1{font-size:52px;line-height:1.04;letter-spacing:-.045em;margin:20px 0 16px}.lead{font-size:21px;color:#424245;margin:0}.hero-card{background:linear-gradient(135deg,#111827,#1e3a8a 55%,#7c3aed);color:white;position:relative;overflow:hidden}.hero-card:after{content:"";position:absolute;right:-90px;top:-90px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.14)}.metric{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:28px}.metric div{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:20px;padding:16px}.metric b{display:block;font-size:28px;line-height:1}.metric span{font-size:13px;opacity:.8}.section{margin-top:28px}.section h2{font-size:34px;letter-spacing:-.035em;margin:0 0 14px}.section>p{color:var(--muted);font-size:17px;margin:0 0 18px}.grid{display:grid;gap:18px}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 8px 26px rgba(0,0,0,.04)}.card h3{margin:0 0 10px;font-size:22px;letter-spacing:-.02em}.card p{margin:0;color:#515154}.tag{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:12px}.blue{background:#dbeafe;color:#1d4ed8}.green{background:#dcfce7;color:#15803d}.orange{background:#ffedd5;color:#c2410c}.red{background:#fee2e2;color:#b91c1c}.purple{background:#ede9fe;color:#6d28d9}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:stretch}.step{position:relative;background:white;border:1px solid var(--line);border-radius:22px;padding:20px;min-height:154px}.step .num{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#111827;color:white;font-weight:800;margin-bottom:12px}.step h3{font-size:18px;margin:0 0 8px}.step p{font-size:14px;color:var(--muted);margin:0}.table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:22px;border:1px solid var(--line);background:white}.table th,.table td{text-align:left;padding:16px;border-bottom:1px solid var(--line);vertical-align:top}.table th{background:#f9fafb;font-size:13px;color:#374151}.table tr:last-child td{border-bottom:0}.table td{font-size:14px}.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#f3f4f6;color:#374151;font-size:12px;font-weight:700}.code{background:#0b1020;color:#dbeafe;border-radius:20px;padding:18px;overflow:auto;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.warning{border-left:5px solid var(--orange);background:#fff7ed}.ok{border-left:5px solid var(--green);background:#f0fdf4}.danger{border-left:5px solid var(--red);background:#fef2f2}.bluebox{border-left:5px solid var(--blue);background:#eff6ff}.mind{display:grid;grid-template-columns:260px 1fr;gap:18px}.axis{background:#111827;color:white;border-radius:24px;padding:24px}.axis h3{margin:0 0 14px}.axis ol{padding-left:20px;margin:0}.axis li{margin:10px 0}.checklist{columns:2;column-gap:30px}.checklist li{break-inside:avoid;margin:8px 0}.small{font-size:13px;color:var(--muted)}.kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#f3f4f6;border:1px solid #d1d5db;border-bottom-width:2px;border-radius:7px;padding:1px 6px}.footer{margin-top:36px;color:var(--muted);font-size:13px;text-align:center}
+    @media(max-width:900px){.hero,.g2,.g3,.flow,.mind{grid-template-columns:1fr}.hero h1{font-size:40px}.checklist{columns:1}.wrap{padding:28px 16px 56px}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <section class="hero">
+    <div class="panel">
+      <span class="eyebrow">Claude Best Practice 解读 · Computer / Browser Use</span>
+      <h1>0→1 构建好的<br/>Computer Use Agent</h1>
+      <p class="lead">核心不是“让模型会点鼠标”，而是把 <b>视觉输入、坐标执行、上下文管理、安全边界、失败诊断</b> 做成一套可靠工程系统。</p>
+    </div>
+    <div class="panel hero-card">
+      <h2 style="margin:0;font-size:30px;letter-spacing:-.03em">一句话结论</h2>
+      <p style="font-size:20px;opacity:.92">Browser / Computer Use Agent 的上限由模型决定，但下限由 harness 决定。大多数“不靠谱”不是推理失败，而是截图缩放、坐标映射、上下文爆炸、权限环境或安全策略没设计好。</p>
+      <div class="metric">
+        <div><b>1280×720</b><span>4.6 系列安全默认分辨率</span></div>
+        <div><b>3 张</b><span>建议保留最近截图数</span></div>
+        <div><b>25</b><span>批量 prune 间隔，保护 cache</span></div>
+        <div><b>HITL</b><span>高风险动作必须人工确认</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <h2>文章最重要的 8 条 Best Practice</h2>
+    <div class="grid g2">
+      <div class="card"><span class="tag blue">01 视觉</span><h3>先缩放截图，再发给模型</h3><p>如果截图超过 API 图像上限，服务端会静默 downscale，模型看到的坐标空间和你的执行坐标会错位。</p></div>
+      <div class="card"><span class="tag blue">02 坐标</span><h3>display 尺寸必须等于实际图片尺寸</h3><p>模型返回的是 display_width/display_height 坐标，执行前要缩放回真实屏幕坐标。</p></div>
+      <div class="card"><span class="tag green">03 提示</span><h3>文本指令放在截图前</h3><p>content 数组中先放“要找什么/做什么”，再放图，能提高点击定位准确性。</p></div>
+      <div class="card"><span class="tag purple">04 模型</span><h3>机械点击和复杂推理可拆模型</h3><p>Sonnet 更适合稳定点击；Opus 适合强推理/高分辨率/复杂任务；可用 orchestrator + executor。</p></div>
+      <div class="card"><span class="tag orange">05 小目标</span><h3>小控件不要硬点</h3><p>checkbox、托盘图标、小箭头等应优先 zoom、键盘导航、DOM/JS 操作或放大 UI。</p></div>
+      <div class="card"><span class="tag red">06 安全</span><h3>网页内容一律视为不可信</h3><p>prompt injection 是 computer use 的核心风险，提交表单、发消息、付款、改数据必须人审。</p></div>
+      <div class="card"><span class="tag purple">07 上下文</span><h3>截图会快速吃满上下文</h3><p>每张图约 1000–1800 tokens，长任务必须 rolling buffer + prompt cache + compaction。</p></div>
+      <div class="card"><span class="tag green">08 可观测</span><h3>失败要能回放</h3><p>记录每步截图、模型 thinking、tool call、坐标 overlay，才能知道是模型没看懂还是 harness 错。</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>0→1 架构蓝图</h2>
+    <p>一个可靠的 Computer / Browser Use Agent 可以拆成 5 层。不要一开始就写复杂 prompt，先把这 5 层跑通。</p>
+    <div class="flow">
+      <div class="step"><div class="num">1</div><h3>环境层</h3><p>浏览器/桌面、登录态、网络、文件权限、视口、DPI。</p></div>
+      <div class="step"><div class="num">2</div><h3>感知层</h3><p>截图、DOM、URL、accessibility tree、页面状态。</p></div>
+      <div class="step"><div class="num">3</div><h3>决策层</h3><p>模型规划下一步，选择 click/type/scroll/DOM/JS。</p></div>
+      <div class="step"><div class="num">4</div><h3>执行层</h3><p>坐标缩放、动作执行、等待页面稳定、异常恢复。</p></div>
+      <div class="step"><div class="num">5</div><h3>治理层</h3><p>日志、回放、安全确认、上下文压缩、成本控制。</p></div>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <h2>推荐从 MVP 到 Production 的路线</h2>
+    <table class="table">
+      <thead><tr><th>阶段</th><th>目标</th><th>必须实现</th><th>不要过早做</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill">MVP</span></td><td>能稳定完成 5–10 步网页任务</td><td>截图缩放、坐标映射、click/type/scroll、基础日志</td><td>复杂多 agent、自动泛化所有网站</td></tr>
+        <tr><td><span class="pill">Beta</span></td><td>能处理常见异常和长任务</td><td>等待策略、失败重试、rolling buffer、人工确认</td><td>盲目 batch actions、无日志自动执行高风险动作</td></tr>
+        <tr><td><span class="pill">Production</span></td><td>稳定、可审计、可控成本</td><td>prompt cache、compaction、trajectory viewer、权限分级、注入防护</td><td>只靠 prompt 修所有工程问题</td></tr>
+        <tr><td><span class="pill">Scale</span></td><td>可复用流程和领域技能</td><td>Teach mode、workflow library、advisor model、评测集</td><td>没有评测就堆模型和工具</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>第一性原理：为什么很多 Browser Use 会失败</h2>
+    <div class="grid g3">
+      <div class="card danger"><h3>看错</h3><p>截图过大被压缩、DPI=2、低分辨率丢细节、目标太小、弹窗不在截图里。</p></div>
+      <div class="card danger"><h3>点错</h3><p>display 尺寸不匹配、坐标没 scale back、窗口滚动后状态变化、点击后未等待稳定。</p></div>
+      <div class="card danger"><h3>忘了</h3><p>截图堆满上下文，历史被截断；compaction 没保留用户原始约束和失败尝试。</p></div>
+      <div class="card danger"><h3>被攻击</h3><p>网页、邮件、文档中可能包含“忽略用户指令”这类 prompt injection。</p></div>
+      <div class="card danger"><h3>环境不对</h3><p>云端浏览器没有用户登录态、本地文件、企业内网、插件或本机窗口状态。</p></div>
+      <div class="card danger"><h3>不可观测</h3><p>没有截图回放、坐标 overlay、tool result 日志，只能猜失败原因。</p></div>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <h2>Harness 最小实现：别让坐标系统坑你</h2>
+    <div class="grid g2">
+      <div>
+        <h3>固定 720p 默认方案</h3>
+        <p class="small">适合 4.6 系列和大多数网页任务。关键是：你发给模型的图片尺寸、tool 声明的 display 尺寸、模型返回坐标所在空间，三者必须一致。</p>
+        <pre class="code">display_w, display_h = 1280, 720
+resized = screenshot.resize((display_w, display_h))
+
+tool = {
+  "type": "computer_20251124",
+  "name": "computer",
+  "display_width_px": display_w,
+  "display_height_px": display_h,
+  "enable_zoom": True,
+}
+
+screen_x = int(api_x * screen_w / display_w)
+screen_y = int(api_y * screen_h / display_h)</pre>
+      </div>
+      <div>
+        <h3>诊断口诀</h3>
+        <ul>
+          <li>总是偏一边：多半是尺寸或 DPI 错。</li>
+          <li>大概区域对、小目标 miss：用 zoom / keyboard / DOM。</li>
+          <li>点了相似按钮：指令不够具体，要给位置和上下文。</li>
+          <li>全局都差：截图超过上限或分辨率太低。</li>
+        </ul>
+        <div class="card ok"><b>工程检查项</b><br/>每次执行 click 前保存：原始截图、发送给模型的截图、display 尺寸、返回坐标、缩放后坐标、点击 overlay。</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <h2>模型与 Thinking Effort 怎么选</h2>
+    <table class="table">
+      <thead><tr><th>场景</th><th>推荐</th><th>原因</th></tr></thead>
+      <tbody>
+        <tr><td>多数普通网页自动化</td><td>Sonnet 4.6 + medium thinking</td><td>点击精度、推理、成本均衡；中等思考通常性价比最高。</td></tr>
+        <tr><td>复杂一次性任务 / 专业软件 / 高分辨率</td><td>Opus 4.7 + high</td><td>更强推理、更高像素预算；high 接近最高成功率但成本低于 max。</td></tr>
+        <tr><td>高吞吐、低成本</td><td>low thinking 或 Haiku</td><td>短流程、稳定 UI 下足够；少量 thinking 反而减少重试。</td></tr>
+        <tr><td>复杂规划 + 机械点击</td><td>Planner/Advisor + Executor</td><td>强模型负责策略，便宜/精准模型负责执行。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>长任务上下文管理：三件套</h2>
+    <div class="mind">
+      <div class="axis">
+        <h3>默认组合</h3>
+        <ol>
+          <li>Prompt cache breakpoints</li>
+          <li>Batch rolling buffer</li>
+          <li>LLM compaction</li>
+        </ol>
+      </div>
+      <div class="grid g3">
+        <div class="card"><span class="tag purple">Cache</span><h3>断点别只放稳定前缀</h3><p>1 个放 system/tools，最多 3 个放最近 tool_result，每轮移动。</p></div>
+        <div class="card"><span class="tag purple">Buffer</span><h3>批量删旧图</h3><p>保留最近 3 张，超过阈值后每 25 张批量替换为 [Image omitted]，避免 cache 每轮失效。</p></div>
+        <div class="card"><span class="tag purple">Compact</span><h3>摘要替代历史</h3><p>接近窗口上限时总结用户指令、约束、已做、失败、当前状态、下一步。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <h2>安全设计：Browser Use 不是普通 API 调用</h2>
+    <div class="grid g2">
+      <div class="card warning"><h3>网页内容不是用户指令</h3><p>系统 prompt 必须明确：网页、邮件、图片、文档里的文字都是不可信环境内容，不能覆盖用户目标。</p></div>
+      <div class="card warning"><h3>高风险动作必须暂停</h3><p>提交表单、发消息、付款、删除、改权限、下载/运行文件、外发数据前必须 human-in-the-loop。</p></div>
+      <div class="card warning"><h3>最小权限</h3><p>不需要下载就禁下载；不需要发邮件就不暴露邮箱；不需要本地文件就不给文件系统。</p></div>
+      <div class="card warning"><h3>全链路审计</h3><p>记录每个动作、截图、URL、模型输出、确认记录，方便追责和迭代。</p></div>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <h2>Web / Mobile 云端 Browser 与 PC 本机 Browser 的产品解法</h2>
+    <p>这也解释了为什么用户会觉得“agent 不靠谱”：他们不知道当前端的 browser use 能力发生了降级。</p>
+    <table class="table">
+      <thead><tr><th>能力</th><th>云端 Browser</th><th>PC 本机 Browser</th><th>产品提示</th></tr></thead>
+      <tbody>
+        <tr><td>登录态 / Cookie</td><td>通常没有</td><td>可复用</td><td>涉及“我的账号/后台/登录”时建议 PC</td></tr>
+        <tr><td>企业内网</td><td>可能访问不了</td><td>跟随用户网络</td><td>检测内网域名时提前说明</td></tr>
+        <tr><td>本地文件</td><td>受限</td><td>更自然</td><td>上传/下载/读取文件时建议 PC</td></tr>
+        <tr><td>插件/证书/系统弹窗</td><td>缺失或不可见</td><td>完整</td><td>遇到系统级 UI 要 fallback</td></tr>
+        <tr><td>复杂交互</td><td>视口/状态可能不同</td><td>更贴近用户所见</td><td>失败后归因为环境限制，而非模型差</td></tr>
+      </tbody>
+    </table>
+    <div class="card bluebox" style="margin-top:16px"><b>推荐不是简单弹一句“PC 更好”。</b> 应做成：任务风险识别 → 能力差异提示 → 一键切到 PC 继续 → 失败后环境归因。</div>
+  </section>
+
+  <section class="section">
+    <h2>0-1 Checklist</h2>
+    <div class="card">
+      <ul class="checklist">
+        <li>固定或自适应缩放截图，禁止直接发原生 4K。</li>
+        <li>声明 display 尺寸等于实际发送图片尺寸。</li>
+        <li>执行 click 前坐标 scale back。</li>
+        <li>文本指令放在截图前。</li>
+        <li>启用 zoom 处理密集 UI。</li>
+        <li>小目标优先 keyboard / DOM / JS。</li>
+        <li>每步记录截图、坐标、tool call。</li>
+        <li>提供 trajectory viewer 和 click overlay。</li>
+        <li>长任务保留最近 3 张截图。</li>
+        <li>旧图批量 prune，避免 cache 每轮失效。</li>
+        <li>接近上下文上限时 compaction。</li>
+        <li>compaction 摘要保留用户原话和失败尝试。</li>
+        <li>网页内容视为不可信。</li>
+        <li>高风险动作 human-in-the-loop。</li>
+        <li>按端能力选择云端/本机 browser。</li>
+        <li>建立真实任务 eval set，不靠感觉调参。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <h2>最终建议：先做“窄而稳”，再做“广而强”</h2>
+    <div class="grid g3">
+      <div class="card ok"><h3>第一周</h3><p>只支持 3 类低风险任务，跑通截图、坐标、日志、回放。</p></div>
+      <div class="card ok"><h3>第一个月</h3><p>加入上下文压缩、安全确认、失败归因和端能力路由。</p></div>
+      <div class="card ok"><h3>规模化</h3><p>沉淀 workflow demo、teach mode、advisor、评测集和权限治理。</p></div>
+    </div>
+  </section>
+
+  <div class="footer">基于 Claude Blog: “Best practices for computer and browser use with Claude” 解读整理 · 2026-05-15</div>
+</main>
+<!-- HL_HOME_BUTTON_v1 -->
+<a href="../" class="hl-home-btn" aria-label="返回首页">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/>
+  </svg>
+  <span>Library</span>
+</a>
+<style>
+  .hl-home-btn{position:fixed;top:16px;right:16px;z-index:99999;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:#1d1d1f;text-decoration:none;font:500 13px/1 -apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;box-shadow:0 1px 3px rgba(0,0,0,.06),0 6px 16px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.05);transition:transform .15s,box-shadow .15s,background .15s}
+  .hl-home-btn:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.08),0 10px 22px rgba(0,0,0,.1);background:rgba(255,255,255,.92)}
+  .hl-home-btn svg{width:14px;height:14px}
+  @media (prefers-color-scheme:dark){.hl-home-btn{background:rgba(28,28,30,.78);color:#f5f5f7;border-color:rgba(255,255,255,.08)}.hl-home-btn:hover{background:rgba(44,44,46,.92)}}
+  @media print{.hl-home-btn{display:none}}
+</style>
+</body>
+</html>

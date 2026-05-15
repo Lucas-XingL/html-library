@@ -265,7 +265,7 @@
   <header>
     <h1>Reading Library</h1>
     <p class="subtitle">Visualized articles, dashboards & artifacts</p>
-    <p class="meta"><span id="count">3</span> ARTIFACTS</p>
+    <p class="meta"><span id="count">4</span> ARTIFACTS</p>
   </header>
 
   <div class="toolbar">
@@ -276,15 +276,16 @@
   </div>
 
   <div class="tags" id="tags">
-    <button class="tag active" data-tag="">全部 <span class="count" id="all-count">3</span></button>
-    <button class="tag" data-tag="可视化精读">可视化精读 <span class="count">2</span></button>
+    <button class="tag active" data-tag="">全部 <span class="count" id="all-count">4</span></button>
+    <button class="tag" data-tag="Agent">Agent <span class="count">2</span></button>
+<button class="tag" data-tag="Anthropic">Anthropic <span class="count">2</span></button>
+<button class="tag" data-tag="可视化精读">可视化精读 <span class="count">2</span></button>
+<button class="tag" data-tag="指南">指南 <span class="count">1</span></button>
 <button class="tag" data-tag="Agent架构">Agent架构 <span class="count">1</span></button>
 <button class="tag" data-tag="接入方案">接入方案 <span class="count">1</span></button>
 <button class="tag" data-tag="HTML">HTML <span class="count">1</span></button>
 <button class="tag" data-tag="Claude Code">Claude Code <span class="count">1</span></button>
-<button class="tag" data-tag="Anthropic">Anthropic <span class="count">1</span></button>
 <button class="tag" data-tag="译文">译文 <span class="count">1</span></button>
-<button class="tag" data-tag="Agent">Agent <span class="count">1</span></button>
 <button class="tag" data-tag="Skill">Skill <span class="count">1</span></button>
 <button class="tag" data-tag="Perplexity">Perplexity <span class="count">1</span></button>
   </div>
@@ -297,7 +298,7 @@
 </div>
 
 <script>
-const ITEMS = [{"slug": "miaoda-integration-patterns", "title": "主 Agent × 妙搭 Coding Agent · 接入方案对比", "tags": ["Agent架构", "接入方案", "可视化精读"], "added": "2026-05-13", "size_kb": 41}, {"slug": "claude-html-as-better-docs", "title": "Claude Code 里的 HTML：不只是网页，而是更好的工作文档", "tags": ["HTML", "Claude Code", "Anthropic", "译文"], "added": "2026-05-11", "size_kb": 974}, {"slug": "perplexity-agent-skills-guide", "title": "Agent Skills 设计指南 · 可视化精读", "tags": ["Agent", "Skill", "Perplexity", "可视化精读"], "added": "2026-05-11", "size_kb": 28}];
+const ITEMS = [{"slug": "computer-browser-use-agent-guide", "title": "0→1 构建高可靠 Computer / Browser Use Agent", "tags": ["Agent", "Anthropic", "指南"], "added": "2026-05-15", "size_kb": 18}, {"slug": "miaoda-integration-patterns", "title": "主 Agent × 妙搭 Coding Agent · 接入方案对比", "tags": ["Agent架构", "接入方案", "可视化精读"], "added": "2026-05-13", "size_kb": 41}, {"slug": "claude-html-as-better-docs", "title": "Claude Code 里的 HTML：不只是网页，而是更好的工作文档", "tags": ["HTML", "Claude Code", "Anthropic", "译文"], "added": "2026-05-11", "size_kb": 974}, {"slug": "perplexity-agent-skills-guide", "title": "Agent Skills 设计指南 · 可视化精读", "tags": ["Agent", "Skill", "Perplexity", "可视化精读"], "added": "2026-05-11", "size_kb": 28}];
 const grid = document.getElementById('grid');
 const q = document.getElementById('q');
 const tags = document.getElementById('tags');

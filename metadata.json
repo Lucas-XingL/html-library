@@ -1,6 +1,17 @@
 {
   "items": [
     {
+      "slug": "computer-browser-use-agent-guide",
+      "title": "0→1 构建高可靠 Computer / Browser Use Agent",
+      "tags": [
+        "Agent",
+        "Anthropic",
+        "指南"
+      ],
+      "added": "2026-05-15",
+      "size_kb": 18
+    },
+    {
       "slug": "miaoda-integration-patterns",
       "title": "主 Agent × 妙搭 Coding Agent · 接入方案对比",
       "tags": [
