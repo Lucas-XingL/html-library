@@ -1,6 +1,17 @@
 {
   "items": [
     {
+      "slug": "prompt-label-check-100",
+      "title": "原始生产输入 → 标签对照抽检表（100 cases）",
+      "tags": [
+        "数据",
+        "报告",
+        "Prompt"
+      ],
+      "added": "2026-06-01",
+      "size_kb": 670
+    },
+    {
       "slug": "computer-browser-use-agent-guide",
       "title": "0→1 构建高可靠 Computer / Browser Use Agent",
       "tags": [
